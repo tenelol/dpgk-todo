@@ -1,6 +1,6 @@
 import type { DataSourceOptions } from 'typeorm';
-import { Todo } from '../todo/entity/todo.entity.js';
-import type { EnvironmentVariables } from './environment.js';
+import { Todo } from '../todo/entity/todo.entity';
+import type { EnvironmentVariables } from './environment';
 
 export function buildDatabaseOptions(
   environmentVariables: EnvironmentVariables,
@@ -13,7 +13,7 @@ export function buildDatabaseOptions(
     password: environmentVariables.DB_PASSWORD,
     database: environmentVariables.DB_NAME,
 
-    synchronize: true,
+    synchronize: false,
 
     entities: [Todo],
     migrations: [__dirname + '/../migrations/*{.js,.ts}'],
