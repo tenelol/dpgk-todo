@@ -1,14 +1,10 @@
+import 'dotenv/config';
 import { DataSource } from 'typeorm';
-import { Todo } from './todo/entity/todo.entity';
+import { buildDatabaseOptions } from './config/database-options';
+import { parseEnvironmentVariables } from './config/environment';
 
-export const AppDataSource = new DataSource({
-  type: 'mysql',
-  host: 'localhost',
-  port: 3306,
-  username: 'todo',
-  password: 'todo',
-  database: 'todo',
-  synchronize: true,
-  entities: [Todo],
-  migrations: ['src/migration/*.ts'],
-})
+const environmentVariables = parseEnvironmentVariables(process.env);
+
+export const AppDataSource = new DataSource(
+  buildDatabaseOptions(environmentVariables),
+);
