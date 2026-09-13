@@ -1,0 +1,7 @@
+node_modules
+dist
+coverage
+mysql-data
+.env
+.env.*
+*.log
