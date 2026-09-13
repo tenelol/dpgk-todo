@@ -12,11 +12,20 @@ async function bootstrap() {
   const configService =
     app.get<ConfigService<EnvironmentVariables, true>>(ConfigService);
 
-  app.useGlobalPipes(new ValidationPipe());
+  app.enableShutdownHooks();
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,
+      forbidNonWhitelisted: true,
+      transform: true,
+    }),
+  );
 
   const port = configService.get('PORT', { infer: true });
 
-  app.enableCors();
+  if (configService.get('NODE_ENV', { infer: true }) === 'development') {
+    app.enableCors({ origin: 'http://localhost:3001' });
+  }
   await app.listen(port, '0.0.0.0');
 }
 bootstrap();
