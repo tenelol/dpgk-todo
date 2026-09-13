@@ -6,7 +6,7 @@ export function useTodos() {
   const [todos, setTodos] = useState<Todo[]>([]);
   useEffect(() => {
     axios
-      .get("http://localhost:3000/todo")
+      .get("/api/todo")
       .then((response) => {
         setTodos(response.data);
       })
@@ -17,7 +17,7 @@ export function useTodos() {
 
   const addTodo = (title: string, description: string) => {
     axios
-      .post("http://localhost:3000/todo", { title, description })
+      .post("/api/todo", { title, description })
       .then((response) => {
         setTodos([...todos, response.data]);
       })
@@ -28,7 +28,7 @@ export function useTodos() {
 
   const updateTodo = (id: number, title: string, description: string) => {
     axios
-      .patch(`http://localhost:3000/todo/${id}`, {
+      .patch(`/api/todo/${id}`, {
         title,
         description,
       })
@@ -46,7 +46,7 @@ export function useTodos() {
 
   const deleteTodo = (id: number) => {
     axios
-      .delete(`http://localhost:3000/todo/${id}`)
+      .delete(`/api/todo/${id}`)
       .then(() => {
         setTodos(todos.filter((todo) => todo.id !== id));
       })
@@ -57,7 +57,7 @@ export function useTodos() {
 
   const completeTodo = (id: number) => {
     axios
-      .patch(`http://localhost:3000/todo/${id}`, { completed: true })
+      .patch(`/api/todo/${id}`, { completed: true })
       .then((response) => {
         setTodos(
           todos.map((todo) => {

@@ -6,7 +6,7 @@ export function Hello() {
 
   useEffect(() => {
     axios
-      .get("http://localhost:3000/hello")
+      .get("/api/hello")
       .then((response) => {
         setMessage(response.data);
       })
