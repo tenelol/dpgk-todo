@@ -9,26 +9,26 @@ const App: React.FC = () => {
       <div className="flex flex-col min-h-screen">
         <TodoForm addTodo={addTodo} />
         <main className="flex-1">
-        <div className="grid grid-cols-[24rem_24rem] justify-center gap-8 p-10">
-          <div>
-            <h2>🌟 uncompleted</h2>
-            <TodoList
-              todos={todos.filter((todo) => !todo.completed)}
-              updateTodo={updateTodo}
-              completeTodo={completeTodo}
-              deleteTodo={deleteTodo}
-            />
+          <div className="grid grid-cols-1 md:grid-cols-2 justify-center gap-8 p-10 max-w-4xl w-full mx-auto py-10 px-4">
+            <div>
+              <h2>🌟 uncompleted</h2>
+              <TodoList
+                todos={todos.filter((todo) => !todo.completed)}
+                updateTodo={updateTodo}
+                completeTodo={completeTodo}
+                deleteTodo={deleteTodo}
+              />
+            </div>
+            <div>
+              <h2>💰 completed</h2>
+              <TodoList
+                todos={todos.filter((todo) => todo.completed)}
+                updateTodo={updateTodo}
+                completeTodo={completeTodo}
+                deleteTodo={deleteTodo}
+              />
+            </div>
           </div>
-          <div>
-            <h2>💰 completed</h2>
-            <TodoList
-              todos={todos.filter((todo) => todo.completed)}
-              updateTodo={updateTodo}
-              completeTodo={completeTodo}
-              deleteTodo={deleteTodo}
-            />
-          </div>
-        </div>
         </main>
         <footer>
           <Hello />

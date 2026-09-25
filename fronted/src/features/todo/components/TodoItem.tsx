@@ -30,7 +30,7 @@ export function TodoItem(props: Props) {
       {isEditing ? (
         <TodoEditForm todo={todo} updateTodo={updateTodo} onClickClose={onClickClose} />
       ) : (
-        <div className="card card-dash glass w-96" key={todo.id}>
+        <div className="card card-dash glass w-full" key={todo.id}>
           <div className="card-body">
             <h3 className="card-title">{todo.title}</h3>
             <p>{todo.description}</p>

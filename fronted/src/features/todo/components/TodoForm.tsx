@@ -11,9 +11,9 @@ export function TodoForm({ addTodo }: Props) {
     addTodo(title, description);
     (setTitle(""), setDescription(""));
   };
-  
+
   return (
-    <div className="flex flex-col gap-2 items-center pt-60">
+    <div className="flex flex-col gap-2 items-center pt-50 md:pt-60">
       <input
         className="input glass"
         placeholder="title"
@@ -28,10 +28,7 @@ export function TodoForm({ addTodo }: Props) {
         onChange={(e) => setDescription(e.currentTarget.value)}
       />
       <div className="aura aura-gold">
-        <button
-          className="btn w-64 rounded-full"
-          onClick={onClickAdd}
-        >
+        <button className="btn w-64 rounded-full" onClick={onClickAdd}>
           ADD
         </button>
       </div>
