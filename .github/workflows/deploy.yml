@@ -1,0 +1,82 @@
+name: CI and production deploy
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      DB_NAME: todo
+      DB_USERNAME: todo
+      DB_PASSWORD: ci-only-not-a-secret
+      MYSQL_ROOT_PASSWORD: ci-root-not-a-secret
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.15.1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - run: pnpm install --frozen-lockfile && pnpm lint && pnpm test && pnpm build
+        working-directory: backend
+      - run: pnpm install --frozen-lockfile && pnpm lint && pnpm build
+        working-directory: fronted
+      - name: Smoke-test production Compose without the tunnel
+        run: |
+          docker compose -p "todo-ci-${GITHUB_RUN_ID}" -f compose.production.yml up -d --build --wait db migrate backend web
+          docker compose -p "todo-ci-${GITHUB_RUN_ID}" -f compose.production.yml exec -T web wget -qO /dev/null http://127.0.0.1/ </dev/null
+          docker compose -p "todo-ci-${GITHUB_RUN_ID}" -f compose.production.yml exec -T web wget -qO /dev/null http://127.0.0.1/api/todo </dev/null
+      - name: Remove CI-only containers and database
+        if: always()
+        run: docker compose -p "todo-ci-${GITHUB_RUN_ID}" -f compose.production.yml down -v --remove-orphans
+
+  deploy:
+    needs: ci
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request' && vars.DEPLOY_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment: production
+    concurrency:
+      group: todo-production
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+      - name: Join tailnet
+        uses: tailscale/github-action@v4
+        with:
+          oauth-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
+          oauth-secret: ${{ secrets.TS_OAUTH_SECRET }}
+          tags: tag:ci
+          ping: ${{ vars.DEPLOY_HOST }}
+      - name: Deploy the tested revision
+        env:
+          DEPLOY_HOST: ${{ vars.DEPLOY_HOST }}
+          DEPLOY_HOST_KEY: ${{ vars.DEPLOY_HOST_KEY }}
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+        run: |
+          set -euo pipefail
+          test -n "$DEPLOY_HOST" && test -n "$DEPLOY_HOST_KEY" && test -n "$DEPLOY_SSH_KEY"
+          latest="$(git ls-remote origin refs/heads/main | cut -f1)"
+          if [ "$latest" != "$GITHUB_SHA" ]; then
+            echo "Newer main revision exists; skipping superseded deployment"
+            exit 0
+          fi
+          install -m 700 -d ~/.ssh
+          printf '%s %s\n' "$DEPLOY_HOST" "$DEPLOY_HOST_KEY" > ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/known_hosts
+          printf '%s\n' "$DEPLOY_SSH_KEY" > ~/.ssh/id_deploy
+          chmod 600 ~/.ssh/id_deploy
+          rsync -az --delete --exclude=.env.production --exclude=context --exclude='.git/' \
+            -e "ssh -i $HOME/.ssh/id_deploy -o BatchMode=yes -o StrictHostKeyChecking=yes" \
+            ./ "debian@${DEPLOY_HOST}:/opt/nest-react-todo/"
+          ssh -i "$HOME/.ssh/id_deploy" -o BatchMode=yes -o StrictHostKeyChecking=yes \
+            "debian@${DEPLOY_HOST}" 'bash /opt/nest-react-todo/scripts/deploy-production.sh'
