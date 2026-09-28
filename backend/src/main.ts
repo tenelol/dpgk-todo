@@ -26,6 +26,6 @@ async function bootstrap() {
   if (configService.get('NODE_ENV', { infer: true }) === 'development') {
     app.enableCors({ origin: 'http://localhost:3001' });
   }
-  await app.listen(port, '0.0.0.0');
+  await app.listen(port, configService.get('BIND_HOST', { infer: true }));
 }
 bootstrap();

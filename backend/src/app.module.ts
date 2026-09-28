@@ -28,6 +28,8 @@ export const { ObserveModule, ObserveInstrument } = createObserveModule();
         buildDatabaseOptions({
           NODE_ENV: configService.get('NODE_ENV', { infer: true }),
           PORT: configService.get('PORT', { infer: true }),
+          BIND_HOST: configService.get('BIND_HOST', { infer: true }),
+          DB_SOCKET: configService.get('DB_SOCKET', { infer: true }),
           DB_HOST: configService.get('DB_HOST', { infer: true }),
           DB_PORT: configService.get('DB_PORT', { infer: true }),
           DB_NAME: configService.get('DB_NAME', { infer: true }),

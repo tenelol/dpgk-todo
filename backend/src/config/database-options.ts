@@ -7,10 +7,14 @@ export function buildDatabaseOptions(
 ): DataSourceOptions {
   return {
     type: 'mysql',
-    host: environmentVariables.DB_HOST,
-    port: environmentVariables.DB_PORT,
+    ...(environmentVariables.DB_SOCKET
+      ? { socketPath: environmentVariables.DB_SOCKET }
+      : {
+          host: environmentVariables.DB_HOST,
+          port: environmentVariables.DB_PORT,
+          password: environmentVariables.DB_PASSWORD,
+        }),
     username: environmentVariables.DB_USERNAME,
-    password: environmentVariables.DB_PASSWORD,
     database: environmentVariables.DB_NAME,
 
     synchronize: false,
