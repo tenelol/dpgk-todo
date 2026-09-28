@@ -1,0 +1,60 @@
+name: Todo CI/CD
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v6
+        with:
+          version: 11.25.0
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+      - name: Test and build backend
+        run: |
+          cd backend
+          pnpm install --frozen-lockfile
+          pnpm lint
+          pnpm test
+          pnpm build
+      - name: Build frontend
+        run: |
+          cd fronted
+          pnpm install --frozen-lockfile
+          pnpm lint
+          pnpm build
+      - uses: actions/upload-artifact@v4
+        if: github.event_name == 'push'
+        with:
+          name: site
+          retention-days: 1
+          if-no-files-found: error
+          path: |
+            fronted/dist/
+            backend/dist/
+            backend/package.json
+            backend/pnpm-lock.yaml
+
+  deploy:
+    if: github.event_name == 'push'
+    needs: build
+    runs-on: [self-hosted, linux, x64, todo-deploy]
+    concurrency:
+      group: todo-production
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: site
+          path: site/
+      - run: bash scripts/deploy-vm202.sh site
